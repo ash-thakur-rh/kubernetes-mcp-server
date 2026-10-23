@@ -41,3 +41,14 @@ config:
             toolPattern: ".*"
         minToolCalls: 1
         maxToolCalls: 20
+    - glob: ../../tasks/*/*/*.yaml
+      labelSelector:
+        suite: kubevirt-migration
+      assertions:
+        toolsUsed:
+          - server: kubernetes
+            toolPattern: "^vm_migrate$"
+          - server: kubernetes
+            toolPattern: "^resources_get$"
+        minToolCalls: 2
+        maxToolCalls: 20

@@ -12,6 +12,7 @@ import (
 	vm_create "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/create"
 	vm_guestagent "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/guestagent"
 	vm_lifecycle "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/lifecycle"
+	vm_migrate "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/migrate"
 	vm_template "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/template"
 	vm_troubleshoot "github.com/containers/kubernetes-mcp-server/pkg/toolsets/kubevirt/vm/troubleshoot"
 )
@@ -35,6 +36,7 @@ func (t *Toolset) GetTools(ctx context.Context, toolsetContext api.ToolsetContex
 		vm_create.Tools(ctx, toolsetContext.Inspector),
 		vm_guestagent.Tools(ctx, toolsetContext.Inspector),
 		vm_lifecycle.Tools(ctx, toolsetContext.Inspector),
+		vm_migrate.Tools(ctx, toolsetContext.Inspector),
 		vm_template.Tools(ctx, toolsetContext.Inspector),
 		vm_troubleshoot.Tools(ctx, toolsetContext.Inspector),
 	)

@@ -36,7 +36,7 @@ func Tools(ctx context.Context, inspector api.ClusterInspector) []api.ServerTool
 						"and pod crashloops. "+
 						"If the user asks to fix or remediate the issue, "+
 						"use the Suggested Fixes from the report with "+
-						"vm_lifecycle (restart) or resources_create_or_update.",
+						"vm_lifecycle (restart), vm_migrate, or resources_create_or_update.",
 					defaults.ProductName()),
 				InputSchema: &jsonschema.Schema{
 					Type: "object",

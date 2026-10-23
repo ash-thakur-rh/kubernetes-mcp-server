@@ -665,6 +665,79 @@
               "target": {
                 "resource": {
                   "apiGroup": "kubevirt.io",
+                  "resource": "virtualmachineinstances"
+                }
+              },
+              "verbs": [
+                "get"
+              ]
+            },
+            {
+              "namespace": {
+                "argument": "namespace"
+              },
+              "target": {
+                "resource": {
+                  "apiGroup": "kubevirt.io",
+                  "resource": "virtualmachineinstancemigrations"
+                }
+              },
+              "verbs": [
+                "create"
+              ]
+            }
+          ]
+        },
+        "version": "v1alpha1"
+      }
+    },
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": false,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": "Virtual Machine: Migrate"
+    },
+    "description": "Start a live migration of a running KubeVirt VirtualMachine. Use this to relocate a VM while its guest workload remains available; KubeVirt chooses an eligible destination unless target_node is specified. The migration runs asynchronously, so the returned resource shows its current status rather than guaranteeing completion.",
+    "inputSchema": {
+      "properties": {
+        "name": {
+          "description": "The name of the running VirtualMachine to migrate",
+          "type": "string"
+        },
+        "namespace": {
+          "description": "The namespace of the VirtualMachine",
+          "type": "string"
+        },
+        "target_node": {
+          "description": "Optional Kubernetes node name to target. When omitted, KubeVirt selects an eligible destination node.",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "vm_migrate",
+    "title": "Virtual Machine: Migrate"
+  },
+  {
+    "_meta": {
+      "io.kubernetes-mcp-server/rbac": {
+        "bounded": {
+          "requirements": [
+            {
+              "namespace": {
+                "argument": "namespace"
+              },
+              "resourceName": {
+                "argument": "name"
+              },
+              "target": {
+                "resource": {
+                  "apiGroup": "kubevirt.io",
                   "resource": "virtualmachines"
                 }
               },
@@ -794,7 +867,7 @@
       "readOnlyHint": true,
       "title": "Virtual Machine: Troubleshoot"
     },
-    "description": "Diagnose KubeVirt VirtualMachine issues with automated root-cause detection. Collects VM status, VMI status, volumes, DataVolume/PVC state, cloud-init configuration, pod state, logs, and events, then runs heuristic checks to identify specific problems and suggest fixes. Returns a 'Detected Issues' section with CRITICAL/WARNING findings and actionable remediation steps, followed by raw diagnostic data. Use this tool FIRST whenever a user asks why a VM is not starting, stuck in Provisioning, crashlooping, failing to migrate, or exhibiting unexpected behavior. Automatically detects: missing StorageClasses, invalid PVC specs, dangerous cloud-init commands (shutdown/halt), nodeSelector migration blockers, failed migrations, and pod crashloops. If the user asks to fix or remediate the issue, use the Suggested Fixes from the report with vm_lifecycle (restart) or resources_create_or_update.",
+    "description": "Diagnose KubeVirt VirtualMachine issues with automated root-cause detection. Collects VM status, VMI status, volumes, DataVolume/PVC state, cloud-init configuration, pod state, logs, and events, then runs heuristic checks to identify specific problems and suggest fixes. Returns a 'Detected Issues' section with CRITICAL/WARNING findings and actionable remediation steps, followed by raw diagnostic data. Use this tool FIRST whenever a user asks why a VM is not starting, stuck in Provisioning, crashlooping, failing to migrate, or exhibiting unexpected behavior. Automatically detects: missing StorageClasses, invalid PVC specs, dangerous cloud-init commands (shutdown/halt), nodeSelector migration blockers, failed migrations, and pod crashloops. If the user asks to fix or remediate the issue, use the Suggested Fixes from the report with vm_lifecycle (restart), vm_migrate, or resources_create_or_update.",
     "inputSchema": {
       "properties": {
         "name": {

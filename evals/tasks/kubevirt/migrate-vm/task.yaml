@@ -1,0 +1,98 @@
+kind: Task
+apiVersion: mcpchecker/v1alpha2
+metadata:
+  name: "request-vm-live-migration"
+  difficulty: medium
+  labels:
+    suite: kubevirt-migration
+    project: kubevirt
+    requires: kubevirt
+  annotations:
+    project-name: "KubeVirt"
+    project-url: "https://kubevirt.io"
+spec:
+  requires:
+    - extension: kubernetes
+      as: k8s
+  setup:
+    - k8s.delete:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: vm-test-migration
+        ignoreNotFound: true
+    - k8s.create:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: vm-test-migration
+    - k8s.create:
+        apiVersion: kubevirt.io/v1
+        kind: VirtualMachine
+        metadata:
+          name: test-vm
+          namespace: vm-test-migration
+        spec:
+          runStrategy: Always
+          template:
+            spec:
+              domain:
+                devices:
+                  disks:
+                    - name: containerdisk
+                      disk:
+                        bus: virtio
+                memory:
+                  guest: 1Gi
+              terminationGracePeriodSeconds: 0
+              volumes:
+                - name: containerdisk
+                  containerDisk:
+                    image: quay.io/containerdisks/fedora:latest
+    - k8s.wait:
+        apiVersion: kubevirt.io/v1
+        kind: VirtualMachine
+        metadata:
+          name: test-vm
+          namespace: vm-test-migration
+        condition: Ready
+        timeout: 300s
+  verify:
+    - script:
+        inline: |-
+          #!/usr/bin/env bash
+          set -euo pipefail
+          NS="vm-test-migration"
+
+          MIGRATION_NAME=$(kubectl get virtualmachineinstancemigrations -n "$NS" \
+            -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.spec.vmiName}{"\n"}{end}' \
+            | awk '$2 == "test-vm" {print $1; exit}')
+          if [ -z "$MIGRATION_NAME" ]; then
+            echo "ERROR: no migration request was created for test-vm"
+            exit 1
+          fi
+
+          VMI_NAME=$(kubectl get virtualmachineinstancemigration "$MIGRATION_NAME" -n "$NS" \
+            -o jsonpath='{.spec.vmiName}')
+          if [ "$VMI_NAME" != "test-vm" ]; then
+            echo "ERROR: migration references '$VMI_NAME', expected 'test-vm'"
+            exit 1
+          fi
+
+          PHASE=$(kubectl get virtualmachineinstancemigration "$MIGRATION_NAME" -n "$NS" \
+            -o jsonpath='{.status.phase}')
+          echo "Migration request found: $MIGRATION_NAME; current phase: ${PHASE:-not reported yet}"
+  cleanup:
+    - k8s.delete:
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+          name: vm-test-migration
+        ignoreNotFound: true
+  prompt:
+    inline: >-
+      Please start a live migration for the running VM test-vm in namespace
+      vm-test-migration. Let KubeVirt choose an eligible destination node. Then
+      fetch the created VirtualMachineInstanceMigration resource and report its
+      name and current status. If the migration is still pending or has not
+      completed, say so rather than claiming that the VM moved.
